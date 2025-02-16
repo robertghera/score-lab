@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const { data, error, isPending } = authClient.useSession();
+    const router = useRouter();
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -32,10 +37,39 @@ export default function Navbar() {
                             >
                                 Leaderboard
                             </Link>
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium">
-                                <User className="inline-block mr-1" size={16} />
-                                Sign In
-                            </button>
+                            {isPending ? (
+                                <Button disabled>
+                                    <Loader2 className="animate-spin" />
+                                </Button>
+                            ) : data ? (
+                                <Button
+                                    variant="destructive"
+                                    onClick={async () => {
+                                        await authClient.signOut({
+                                            fetchOptions: {
+                                                onSuccess: () => {
+                                                    router.push("/");
+                                                },
+                                            },
+                                        });
+                                    }}
+                                >
+                                    Sign Out
+                                </Button>
+                            ) : (
+                                <Button asChild>
+                                    <Link
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium"
+                                        href={"/sign-in"}
+                                    >
+                                        <User
+                                            className="inline-block mr-1"
+                                            size={16}
+                                        />
+                                        Sign In
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                     </div>
                     <div className="md:hidden">

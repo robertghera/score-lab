@@ -3,6 +3,7 @@ import { ArrowRight, Trophy, TrendingUp, Users } from "lucide-react";
 import UpcomingMatches from "@/components/UpcomingMatches";
 import TopPredictors from "@/components/TopPredictors";
 import RecentPredictions from "@/components/RecentPredictions";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
     return (
@@ -15,13 +16,15 @@ export default function Home() {
                     <p className="text-xl mb-8 text-gray-300">
                         Predict, Compete, and Conquer the Beautiful Game!
                     </p>
-                    <Link
-                        href="/predictions"
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full inline-flex items-center text-lg transition-all duration-300 transform hover:scale-105"
-                    >
-                        Start Predicting
-                        <ArrowRight className="ml-2" />
-                    </Link>
+                    <Button asChild>
+                        <Link
+                            href="/predictions"
+                            className="hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full inline-flex items-center text-lg transition-all duration-300 transform hover:scale-105"
+                        >
+                            Start Predicting
+                            <ArrowRight className="ml-2" />
+                        </Link>
+                    </Button>
                 </section>
 
                 <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
