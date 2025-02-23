@@ -22,7 +22,8 @@ import {
 import Link from "next/link";
 import { Prediction } from "@/types/predictions";
 interface PredictionsListProps {
-    date: Date | undefined;
+    date?: Date;
+    leagueId?: number;
 }
 
 interface PredictionResponse {
@@ -30,14 +31,23 @@ interface PredictionResponse {
     msg: string;
 }
 
-export default function PredictionsList({ date }: PredictionsListProps) {
-    const [data, setData] = useState<PredictionResponse | null>(null); // maybe type here
+export default function PredictionsList({
+    date,
+    leagueId,
+}: PredictionsListProps) {
+    const [data, setData] = useState<PredictionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (date) {
             setIsLoading(true);
-            fetch(`/api/predictions?date=${format(date, "yyyy-MM-dd")}`)
+            const extraQuery = leagueId ? `&leagueId=${leagueId}` : "";
+            fetch(
+                `/api/predictions?date=${format(
+                    date,
+                    "yyyy-MM-dd"
+                )}${extraQuery}`
+            )
                 .then((res) => res.json())
                 .then((data) => {
                     setData(data);
@@ -48,7 +58,7 @@ export default function PredictionsList({ date }: PredictionsListProps) {
                     setIsLoading(false);
                 });
         }
-    }, [date]);
+    }, [date, leagueId]);
 
     if (isLoading || data === null) {
         return (
@@ -66,7 +76,6 @@ export default function PredictionsList({ date }: PredictionsListProps) {
         );
     }
 
-    // TODO: FIX the vs zone it does not scale nicely on all devices
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.predictions.map((prediction) => (
@@ -99,40 +108,53 @@ export default function PredictionsList({ date }: PredictionsListProps) {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-4 flex-grow">
-                            <div className="flex justify-between items-center mb-4">
-                                <div className="flex items-center">
-                                    <div className="w-14 h-14 mx-auto mb-4 relative">
-                                        <Image
-                                            src={
-                                                prediction.teams.home.logo ||
-                                                "/placeholder.svg"
-                                            }
-                                            alt={prediction.teams.home.name}
-                                            fill
-                                            className="object-contain"
-                                        />
+                            <div className="flex flex-col space-y-3">
+                                <div className="grid grid-cols-3 items-center">
+                                    <div className="flex justify-center">
+                                        <div className="w-16 h-16 relative flex items-center justify-center">
+                                            <Image
+                                                src={
+                                                    prediction.teams.home
+                                                        .logo ||
+                                                    "/placeholder.svg"
+                                                }
+                                                alt={prediction.teams.home.name}
+                                                fill
+                                                className="object-contain p-1"
+                                            />
+                                        </div>
                                     </div>
-                                    <span className="ml-2 font-semibold">
-                                        {prediction.teams.home.name}
-                                    </span>
+                                    <div className="flex justify-center">
+                                        <span className="text-muted-foreground font-bold text-lg">
+                                            vs
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-center">
+                                        <div className="w-16 h-16 relative flex items-center justify-center">
+                                            <Image
+                                                src={
+                                                    prediction.teams.away
+                                                        .logo ||
+                                                    "/placeholder.svg"
+                                                }
+                                                alt={prediction.teams.away.name}
+                                                fill
+                                                className="object-contain p-1"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <span className="text-muted-foreground">
-                                    vs
-                                </span>
-                                <div className="flex items-center">
-                                    <span className="mr-2 font-semibold">
-                                        {prediction.teams.away.name}
-                                    </span>
-                                    <div className="w-14 h-14 mx-auto mb-4 relative">
-                                        <Image
-                                            src={
-                                                prediction.teams.away.logo ||
-                                                "/placeholder.svg"
-                                            }
-                                            alt={prediction.teams.away.name}
-                                            fill
-                                            className="object-contain"
-                                        />
+                                <div className="grid grid-cols-3 text-center pb-4">
+                                    <div className="px-2">
+                                        <span className="text-sm font-semibold line-clamp-2">
+                                            {prediction.teams.home.name}
+                                        </span>
+                                    </div>
+                                    <div />
+                                    <div className="px-2">
+                                        <span className="text-sm font-semibold line-clamp-2">
+                                            {prediction.teams.away.name}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

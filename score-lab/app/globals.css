@@ -22,7 +22,7 @@
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
-    --card: 0 0% 99%;
+    --card: 0 0% 97%;
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
@@ -54,7 +54,7 @@
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 216 49% 13%;
+    --card: 220 47% 15%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222 47% 11%;
@@ -138,15 +138,6 @@
   }
 } */
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
 @layer utilities {
   .text-shadow {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -155,4 +146,17 @@
 
 .league-logo-wrapper {
   @apply bg-white rounded-full p-1 flex items-center justify-center w-10 h-10;
+}
+
+.league-logo-wrapper-mini {
+  @apply bg-white rounded-full p-1 flex items-center justify-center w-7 h-7 mr-2;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

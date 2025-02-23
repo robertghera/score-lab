@@ -10,7 +10,6 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-    // TODO: treat error case
     const { data, isPending } = authClient.useSession();
     const router = useRouter();
 

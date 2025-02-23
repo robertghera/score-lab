@@ -45,17 +45,14 @@ export default function MatchPage() {
     const [gameData, setGameData] = useState<GameData | null>(null);
 
     useEffect(() => {
-        const fetchMatchData = async () => {
-            try {
-                const response = await fetch(`/api/match?id=${id}`);
-                const data = await response.json();
+        fetch(`/api/match?id=${id}`)
+            .then((res) => res.json())
+            .then((data) => {
                 setGameData(data);
-            } catch (error) {
-                console.error("Error fetching match data:", error);
-            }
-        };
-
-        fetchMatchData();
+            })
+            .catch((err) => {
+                console.log(err);
+            });
     }, [id]);
 
     if (!gameData) {
@@ -156,16 +153,16 @@ export default function MatchPage() {
                         </div>
 
                         <div className="mt-6 flex items-center justify-center space-x-4">
-                            <div className="bg-white p-2 rounded-full">
+                            <div className="league-logo-wrapper">
                                 <Image
                                     src={
                                         gameData.league.logo ||
                                         "/placeholder.svg"
                                     }
                                     alt={gameData.league.name}
-                                    width={26}
-                                    height={26}
-                                    className="rounded-full"
+                                    width={28}
+                                    height={28}
+                                    className="object-contain"
                                 />
                             </div>
                             <span className="text-sm">
