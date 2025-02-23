@@ -40,8 +40,6 @@ export default function PredictionsList({ date }: PredictionsListProps) {
             fetch(`/api/predictions?date=${format(date, "yyyy-MM-dd")}`)
                 .then((res) => res.json())
                 .then((data) => {
-                    console.log(1);
-                    console.log(data);
                     setData(data);
                     setIsLoading(false);
                 })
@@ -60,7 +58,6 @@ export default function PredictionsList({ date }: PredictionsListProps) {
         );
     }
 
-    console.log(data);
     if (data.predictions.length === 0) {
         return (
             <p className="text-center text-gray-400">
@@ -68,12 +65,14 @@ export default function PredictionsList({ date }: PredictionsListProps) {
             </p>
         );
     }
+
+    // TODO: FIX the vs zone it does not scale nicely on all devices
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.predictions.map((prediction) => (
                 <Link
                     href={`/match/${prediction.fixture.id}`}
-                    key={prediction._id.$oid}
+                    key={prediction.fixture.id}
                     className="block h-full"
                 >
                     <Card className="bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors h-full flex flex-col">
@@ -102,15 +101,17 @@ export default function PredictionsList({ date }: PredictionsListProps) {
                         <CardContent className="pt-4 flex-grow">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="flex items-center">
-                                    <Image
-                                        src={
-                                            prediction.teams.home.logo ||
-                                            "/placeholder.svg"
-                                        }
-                                        alt={prediction.teams.home.name}
-                                        width={40}
-                                        height={40}
-                                    />
+                                    <div className="w-14 h-14 mx-auto mb-4 relative">
+                                        <Image
+                                            src={
+                                                prediction.teams.home.logo ||
+                                                "/placeholder.svg"
+                                            }
+                                            alt={prediction.teams.home.name}
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
                                     <span className="ml-2 font-semibold">
                                         {prediction.teams.home.name}
                                     </span>
@@ -122,15 +123,17 @@ export default function PredictionsList({ date }: PredictionsListProps) {
                                     <span className="mr-2 font-semibold">
                                         {prediction.teams.away.name}
                                     </span>
-                                    <Image
-                                        src={
-                                            prediction.teams.away.logo ||
-                                            "/placeholder.svg"
-                                        }
-                                        alt={prediction.teams.away.name}
-                                        width={40}
-                                        height={40}
-                                    />
+                                    <div className="w-14 h-14 mx-auto mb-4 relative">
+                                        <Image
+                                            src={
+                                                prediction.teams.away.logo ||
+                                                "/placeholder.svg"
+                                            }
+                                            alt={prediction.teams.away.name}
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground">

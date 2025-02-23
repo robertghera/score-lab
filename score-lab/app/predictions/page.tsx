@@ -48,7 +48,7 @@ export default function PredictionsPage() {
                             variant="outline"
                             className={cn(
                                 "w-[280px] justify-start text-left font-normal",
-                                "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white",
+                                "border-gray-700 hover:bg-primary hover:text-input",
                                 !date && "text-muted-foreground"
                             )}
                         >
@@ -60,22 +60,12 @@ export default function PredictionsPage() {
                             )}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-gray-800 border border-gray-700">
+                    <PopoverContent className="w-auto p-0 border border-gray-700">
                         <Calendar
                             mode="single"
                             selected={date}
                             onSelect={setDate}
-                            initialFocus
-                            className="bg-gray-800 text-white"
-                            classNames={{
-                                day_selected:
-                                    "bg-blue-600 text-white hover:bg-blue-700",
-                                day_today: "bg-gray-700 text-white",
-                                day: "text-gray-300 hover:bg-gray-700",
-                                head_cell: "text-gray-400",
-                                nav_button: "text-gray-400 hover:bg-gray-700",
-                                table: "border-gray-700",
-                            }}
+                            autoFocus
                         />
                     </PopoverContent>
                 </Popover>
