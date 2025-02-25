@@ -38,7 +38,49 @@ interface GameData {
             logo: string;
         };
     };
+    statistics: [
+        {
+            team: {
+                id: number;
+                name: string;
+            };
+            statistics: {
+                type: string;
+                value: string;
+            }[];
+        },
+        {
+            team: {
+                id: number;
+                name: string;
+            };
+            statistics: {
+                type: string;
+                value: string;
+            }[];
+        }
+    ];
 }
+
+// Update the statistics section to use the new layout
+const statisticsToShow = [
+    "Ball Possession",
+    "Total Shots",
+    "Shots on Goal",
+    "Shots off Goal",
+    "Shots insidebox",
+    "Shots outsidebox",
+    "Corner Kicks",
+    "Offsides",
+    "Fouls",
+    "Yellow Cards",
+    "Red Cards",
+    "Goalkeeper Saves",
+    "Total passes",
+    "Passes accurate",
+    "Passes %",
+    "expected_goals",
+];
 
 export default function MatchPage() {
     const { id } = useParams();
@@ -66,7 +108,7 @@ export default function MatchPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <Card className="mb-8 overflow-hidden">
+            <Card className="mb-8 overflow-hidden bg-card">
                 <div className="relative">
                     {isLive && (
                         <div className="absolute top-4 right-4 flex items-center">
@@ -173,7 +215,120 @@ export default function MatchPage() {
                 </div>
             </Card>
 
-            <Card className="mb-8">
+            {gameData?.statistics !== undefined && (
+                <Card className="mb-8 bg-card">
+                    <CardContent className="pt-6">
+                        <h3 className="text-xl font-bold mb-6">
+                            Match Statistics
+                        </h3>
+                        <div className="space-y-4">
+                            {statisticsToShow.map((type) => {
+                                // TODO FIND A NICER WAY TO DO THIS
+                                const homeStat =
+                                    gameData.statistics[0].statistics.find(
+                                        (stat) => stat.type === type
+                                    );
+                                const awayStat =
+                                    gameData.statistics[1].statistics.find(
+                                        (stat) => stat.type === type
+                                    );
+
+                                // Handle percentage stats differently
+                                if (
+                                    type === "Ball Possession" ||
+                                    type === "Passes %"
+                                ) {
+                                    const homeValue = Number.parseInt(
+                                        homeStat?.value?.toString() || "0"
+                                    );
+                                    const awayValue = Number.parseInt(
+                                        awayStat?.value?.toString() || "0"
+                                    );
+
+                                    return (
+                                        <div key={type} className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span>
+                                                    {homeStat?.value || "0%"}
+                                                </span>
+                                                <span className="font-medium">
+                                                    {type}
+                                                </span>
+                                                <span>
+                                                    {awayStat?.value || "0%"}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="h-2 w-full text-foreground rounded-l overflow-hidden flex justify-end">
+                                                    <div
+                                                        className="h-full bg-primary"
+                                                        style={{
+                                                            width: `${homeValue}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="h-2 w-full text-foregroundrounded-r overflow-hidden flex justify-start">
+                                                    <div
+                                                        className="h-full bg-primary"
+                                                        style={{
+                                                            width: `${awayValue}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                // Handle numeric stats
+                                const homeValue = Number(homeStat?.value || 0);
+                                const awayValue = Number(awayStat?.value || 0);
+                                const total = homeValue + awayValue;
+                                const homePercentage =
+                                    total > 0 ? (homeValue / total) * 100 : 0;
+                                const awayPercentage =
+                                    total > 0 ? (awayValue / total) * 100 : 0;
+
+                                if (type === "expected_goals") {
+                                    type = "Expected Goals";
+                                }
+
+                                return (
+                                    <div key={type} className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span>{homeValue}</span>
+                                            <span className="font-medium">
+                                                {type}
+                                            </span>
+                                            <span>{awayValue}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="h-2 w-full text-foreground rounded-l overflow-hidden flex justify-end">
+                                                <div
+                                                    className="h-full bg-primary"
+                                                    style={{
+                                                        width: `${homePercentage}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="h-2 w-full text-foreground rounded-r overflow-hidden flex justify-start">
+                                                <div
+                                                    className="h-full bg-primary"
+                                                    style={{
+                                                        width: `${awayPercentage}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            <Card className="mb-8 bg-card">
                 <CardContent className="pt-6">
                     <h3 className="text-xl font-bold mb-6">AI Predictions</h3>
                     <div className="space-y-4">
