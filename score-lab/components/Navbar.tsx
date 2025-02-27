@@ -23,7 +23,7 @@ export default function Navbar() {
                             href="/"
                             className="text-foreground font-bold text-xl"
                         >
-                            FootballPredict
+                            ScoreLab
                         </Link>
                     </div>
                     <div className="hidden md:flex items-center space-x-4">
