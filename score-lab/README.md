@@ -8,3 +8,6 @@
  - maybe add toasts
  - add error handling for auth cases (make some research here)
  - make the statistics nicer in code
+
+# Before official release
+ - remove all console.logs

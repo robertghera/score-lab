@@ -126,7 +126,7 @@ export default function MatchPage() {
 
                         <div className="flex justify-between items-center mb-12">
                             <div className="text-center flex-1">
-                                <div className="w-28 h-28 mx-auto mb-4 relative">
+                                <div className="w-20 h-20 mx-auto mb-4 relative">
                                     <Image
                                         src={
                                             gameData.teams.home.logo ||
@@ -145,7 +145,7 @@ export default function MatchPage() {
                             <div className="text-4xl font-bold mx-8">VS</div>
 
                             <div className="text-center flex-1">
-                                <div className="w-28 h-28 mx-auto mb-4 relative">
+                                <div className="w-20 h-20 mx-auto mb-4 relative">
                                     <Image
                                         src={
                                             gameData.teams.away.logo ||
@@ -162,7 +162,7 @@ export default function MatchPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center">
                                 <Calendar className="w-5 h-5 mr-3" />
                                 <span>
@@ -202,8 +202,8 @@ export default function MatchPage() {
                                         "/placeholder.svg"
                                     }
                                     alt={gameData.league.name}
-                                    width={28}
-                                    height={28}
+                                    width={24}
+                                    height={24}
                                     className="object-contain"
                                 />
                             </div>

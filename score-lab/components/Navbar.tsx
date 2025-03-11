@@ -101,7 +101,7 @@ export default function Navbar() {
                             Leaderboard
                         </Link>
                         <Link
-                            href="/login"
+                            href="/sign-in"
                             className="bg-primary text-primary-foreground hover:bg-primary/90 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
                         >
                             <User className="inline-block mr-1" size={16} />
