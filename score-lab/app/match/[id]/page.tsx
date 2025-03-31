@@ -38,6 +38,16 @@ interface GameData {
             logo: string;
         };
     };
+    goals: {
+        home: number;
+        away: number;
+    };
+    score: {
+        halftime: { home: number; away: number };
+        fulltime: { home: number; away: number };
+        extratime: { home: number; away: number };
+        penalty: { home: number; away: number };
+    };
     statistics: [
         {
             team: {
@@ -142,7 +152,21 @@ export default function MatchPage() {
                                 </h2>
                             </div>
 
-                            <div className="text-4xl font-bold mx-8">VS</div>
+                            {gameData.goals.home && gameData.goals.away ? (
+                                <div className="text-4xl font-bold mx-8 flex items-center">
+                                    <span className="text-5xl">
+                                        {gameData.goals.home}
+                                    </span>
+                                    <span className="mx-3">-</span>
+                                    <span className="text-5xl">
+                                        {gameData.goals.away}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="text-4xl font-bold mx-8">
+                                    vs
+                                </div>
+                            )}
 
                             <div className="text-center flex-1">
                                 <div className="w-20 h-20 mx-auto mb-4 relative">
