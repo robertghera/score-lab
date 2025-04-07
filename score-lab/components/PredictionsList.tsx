@@ -23,7 +23,7 @@ import Link from "next/link";
 import { Prediction } from "@/types/predictions";
 interface PredictionsListProps {
     date?: Date;
-    leagueId?: number;
+    leagueIds?: number[];
 }
 
 interface PredictionResponse {
@@ -33,7 +33,7 @@ interface PredictionResponse {
 
 export default function PredictionsList({
     date,
-    leagueId,
+    leagueIds,
 }: PredictionsListProps) {
     const [data, setData] = useState<PredictionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +41,7 @@ export default function PredictionsList({
     useEffect(() => {
         if (date) {
             setIsLoading(true);
-            const extraQuery = leagueId ? `&leagueId=${leagueId}` : "";
+            const extraQuery = leagueIds ? `&leagueId=${leagueIds}` : "";
             fetch(
                 `/api/predictions?date=${format(
                     date,
@@ -58,7 +58,7 @@ export default function PredictionsList({
                     setIsLoading(false);
                 });
         }
-    }, [date, leagueId]);
+    }, [date, leagueIds]);
 
     if (isLoading || data === null) {
         return (

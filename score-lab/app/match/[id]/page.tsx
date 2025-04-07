@@ -152,7 +152,7 @@ export default function MatchPage() {
                                 </h2>
                             </div>
 
-                            {gameData.goals.home && gameData.goals.away ? (
+                            {gameData?.goals?.home && gameData?.goals?.away ? (
                                 <div className="text-4xl font-bold mx-8 flex items-center">
                                     <span className="text-5xl">
                                         {gameData.goals.home}
