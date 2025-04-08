@@ -99,9 +99,16 @@ export default function PredictionsList({
                                         className="object-contain"
                                     />
                                 </div>
-                                <span className="text-sm font-semibold">
-                                    {prediction.league.name}
-                                </span>
+                                <div className="flex items-center">
+                                    <span className="text-sm font-semibold">
+                                        {prediction.league.name}
+                                    </span>
+                                    {prediction.final_prediction && (
+                                        <span className="ml-2 px-1.5 py-0.5 text-xs font-semibold rounded-full bg-blue-500 text-white">
+                                            AI
+                                        </span>
+                                    )}
+                                </div>
                             </CardTitle>
                             <CardDescription className="text-muted-foreground">
                                 {prediction.league.round}

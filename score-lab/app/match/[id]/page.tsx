@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Loader2, MapPin, User } from "lucide-react";
 
 interface GameData {
@@ -70,6 +69,10 @@ interface GameData {
             }[];
         }
     ];
+    final_prediction: string | null;
+    prediction: number[] | null;
+    prediction_given: string | null;
+    result: string | null;
 }
 
 // Update the statistics section to use the new layout
@@ -152,7 +155,8 @@ export default function MatchPage() {
                                 </h2>
                             </div>
 
-                            {gameData?.goals?.home && gameData?.goals?.away ? (
+                            {gameData?.goals?.home !== undefined &&
+                            gameData?.goals?.away !== undefined ? (
                                 <div className="text-4xl font-bold mx-8 flex items-center">
                                     <span className="text-5xl">
                                         {gameData.goals.home}
@@ -354,78 +358,157 @@ export default function MatchPage() {
 
             <Card className="mb-8 bg-card">
                 <CardContent className="pt-6">
-                    <h3 className="text-xl font-bold mb-6">AI Predictions</h3>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">
-                                {gameData.teams.home.name} Win
-                            </span>
-                            <div className="flex items-center">
-                                <span className="text-sm font-bold mr-2">
-                                    45%
+                    {gameData.final_prediction ? (
+                        <>
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                AI Predictions:
+                                <span className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500 text-white">
+                                    {gameData.final_prediction === "W"
+                                        ? "Home Win"
+                                        : gameData.final_prediction === "D"
+                                        ? "Draw"
+                                        : gameData.final_prediction === "L"
+                                        ? "Away Win"
+                                        : gameData.final_prediction}
                                 </span>
-                                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-green-500"
-                                        style={{ width: "45%" }}
-                                    ></div>
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium">
+                                        {gameData.teams.home.name} Win
+                                    </span>
+                                    <div className="flex items-center">
+                                        <span className="text-sm font-bold mr-2">
+                                            {gameData.prediction
+                                                ? `${Math.round(
+                                                      gameData.prediction[2] *
+                                                          100
+                                                  )}%`
+                                                : "45%"}
+                                        </span>
+                                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-green-500"
+                                                style={{
+                                                    width: gameData.prediction
+                                                        ? `${Math.round(
+                                                              gameData
+                                                                  .prediction[2] *
+                                                                  100
+                                                          )}%`
+                                                        : "45%",
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium">
+                                        Draw
+                                    </span>
+                                    <div className="flex items-center">
+                                        <span className="text-sm font-bold mr-2">
+                                            {gameData.prediction
+                                                ? `${Math.round(
+                                                      gameData.prediction[1] *
+                                                          100
+                                                  )}%`
+                                                : "30%"}
+                                        </span>
+                                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-yellow-500"
+                                                style={{
+                                                    width: gameData.prediction
+                                                        ? `${Math.round(
+                                                              gameData
+                                                                  .prediction[1] *
+                                                                  100
+                                                          )}%`
+                                                        : "30%",
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium">
+                                        {gameData.teams.away.name} Win
+                                    </span>
+                                    <div className="flex items-center">
+                                        <span className="text-sm font-bold mr-2">
+                                            {gameData.prediction
+                                                ? `${Math.round(
+                                                      gameData.prediction[0] *
+                                                          100
+                                                  )}%`
+                                                : "25%"}
+                                        </span>
+                                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-red-500"
+                                                style={{
+                                                    width: gameData.prediction
+                                                        ? `${Math.round(
+                                                              gameData
+                                                                  .prediction[0] *
+                                                                  100
+                                                          )}%`
+                                                        : "25%",
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Draw</span>
-                            <div className="flex items-center">
-                                <span className="text-sm font-bold mr-2">
-                                    30%
-                                </span>
-                                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-yellow-500"
-                                        style={{ width: "30%" }}
-                                    ></div>
+
+                            {gameData.result && (
+                                <div className="mt-4">
+                                    <h4 className="text-sm font-semibold mb-2">
+                                        Match Result
+                                    </h4>
+                                    <div className="flex items-center">
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs font-medium ${
+                                                gameData.result ===
+                                                gameData.prediction_given
+                                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                            }`}
+                                        >
+                                            {gameData.result === "W"
+                                                ? "Home Win"
+                                                : gameData.result === "D"
+                                                ? "Draw"
+                                                : gameData.result === "L"
+                                                ? "Away Win"
+                                                : gameData.result}
+                                        </span>
+                                        {gameData.result ===
+                                        gameData.prediction_given ? (
+                                            <span className="ml-2 text-xs text-green-600 dark:text-green-400">
+                                                Prediction correct
+                                            </span>
+                                        ) : (
+                                            <span className="ml-2 text-xs text-red-600 dark:text-red-400">
+                                                Prediction incorrect
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-8">
+                            <h3 className="text-xl font-bold mb-4">
+                                AI Prediction Pending
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Our AI is analyzing this match and will provide
+                                predictions soon.
+                            </p>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">
-                                {gameData.teams.away.name} Win
-                            </span>
-                            <div className="flex items-center">
-                                <span className="text-sm font-bold mr-2">
-                                    25%
-                                </span>
-                                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-red-500"
-                                        style={{ width: "25%" }}
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="mt-6">
-                        <h4 className="text-sm font-semibold mb-2">
-                            Key Factors
-                        </h4>
-                        <ul className="list-disc list-inside text-sm text-gray-500 space-y-1">
-                            <li>
-                                Recent form: {gameData.teams.home.name} has won
-                                3 out of their last 5 matches
-                            </li>
-                            <li>
-                                Head-to-head: {gameData.teams.home.name} has a
-                                slight advantage in recent encounters
-                            </li>
-                            <li>
-                                Home advantage: Playing at{" "}
-                                {gameData.fixture.venue.name} could be a
-                                significant factor
-                            </li>
-                        </ul>
-                    </div>
-                    <Button className="mt-6 w-full">
-                        View Detailed Analysis
-                    </Button>
+                    )}
                 </CardContent>
             </Card>
         </div>
