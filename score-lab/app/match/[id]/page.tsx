@@ -47,28 +47,100 @@ interface GameData {
         extratime: { home: number; away: number };
         penalty: { home: number; away: number };
     };
-    statistics: [
-        {
-            team: {
-                id: number;
-                name: string;
-            };
-            statistics: {
-                type: string;
-                value: string;
-            }[];
-        },
-        {
-            team: {
-                id: number;
-                name: string;
-            };
-            statistics: {
-                type: string;
-                value: string;
-            }[];
-        }
-    ];
+    lineups:
+        | [
+              {
+                  team: {
+                      id: number;
+                      name: string;
+                      logo: string;
+                  };
+                  formation: string;
+                  startXI: {
+                      player: {
+                          id: number;
+                          name: string;
+                          number: number | null;
+                          pos: string;
+                          grid: string;
+                      };
+                  }[];
+              },
+              {
+                  team: {
+                      id: number;
+                      name: string;
+                      logo: string;
+                  };
+                  formation: string;
+                  startXI: {
+                      player: {
+                          id: number;
+                          name: string;
+                          number: number | null;
+                          pos: string;
+                          grid: string;
+                      };
+                  }[];
+              }
+          ]
+        | null;
+    players:
+        | [
+              {
+                  team: {
+                      id: number;
+                      name: string;
+                      logo: string;
+                  };
+                  players: {
+                      player: {
+                          id: number;
+                          name: string;
+                          photo: string;
+                      };
+                  }[];
+              },
+              {
+                  team: {
+                      id: number;
+                      name: string;
+                      logo: string;
+                  };
+                  players: {
+                      player: {
+                          id: number;
+                          name: string;
+                          photo: string;
+                      };
+                  }[];
+              }
+          ]
+        | null;
+    statistics:
+        | [
+              {
+                  team: {
+                      id: number;
+                      name: string;
+                  };
+                  statistics: {
+                      type: string;
+                      value: string;
+                  }[];
+              },
+              {
+                  team: {
+                      id: number;
+                      name: string;
+                  };
+                  statistics: {
+                      type: string;
+                      value: string;
+                  }[];
+              }
+          ]
+        | undefined;
     final_prediction: string | null;
     prediction: number[] | null;
     prediction_given: string | null;
@@ -98,6 +170,19 @@ const statisticsToShow = [
 export default function MatchPage() {
     const { id } = useParams();
     const [gameData, setGameData] = useState<GameData | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const teamPositions: any = {
+        home: {},
+        away: {},
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formatPositions: any = {
+        1: [50],
+        2: [30, 70],
+        3: [20, 50, 80],
+        4: [20, 40, 60, 80],
+        5: [10, 28, 50, 72, 90],
+    };
 
     useEffect(() => {
         fetch(`/api/match?id=${id}`)
@@ -113,6 +198,41 @@ export default function MatchPage() {
     if (!gameData) {
         return <Loader2 className="animate-spin mx-auto my-10" />;
     }
+
+    if (gameData && gameData?.lineups?.length === 2) {
+        for (const elem of gameData.lineups[0].startXI) {
+            console.log(elem.player.grid);
+            const value = elem.player.grid.split(":")[0];
+            if (teamPositions.home[value] === undefined) {
+                teamPositions.home[value] = 1;
+            } else {
+                teamPositions.home[value] += 1;
+            }
+        }
+
+        for (const elem of gameData.lineups[1].startXI) {
+            const value = elem.player.grid.split(":")[0];
+            if (teamPositions.away[value] === undefined) {
+                teamPositions.away[value] = 1;
+            } else {
+                teamPositions.away[value] += 1;
+            }
+        }
+    }
+
+    const getPlayerPhotoById = (id: number, whereIsPlayed: "home" | "away") => {
+        let position = 0;
+        if (whereIsPlayed === "home") {
+            position = 0;
+        } else {
+            position = 1;
+        }
+
+        const player = gameData.players?.[position]?.players.find(
+            (p) => p.player.id === id
+        );
+        return player ? player.player.photo : "/placeholder.svg";
+    };
 
     const isLive =
         gameData.fixture.status.short === "1H" ||
@@ -243,6 +363,221 @@ export default function MatchPage() {
                 </div>
             </Card>
 
+            {gameData.lineups && gameData.lineups.length > 0 && (
+                <Card className="mb-8 text-white overflow-hidden bg-card">
+                    <div className="p-4 rounded-t-lg">
+                        <h3 className="text-xl font-bold">Lineups</h3>
+                    </div>
+                    <div className="relative rounded-b-lg h-[600px] w-full overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-full rounded-lg">
+                                {/* Home team - Left side */}
+                                {gameData.lineups[0].startXI.map(
+                                    ({ player }) => {
+                                        // Skip if no grid position
+                                        if (!player.grid) return null;
+
+                                        const [row, col] = player.grid
+                                            .split(":")
+                                            .map(Number);
+                                        const isGoalkeeper = player.pos === "G";
+                                        const valueToSplit = gameData.lineups
+                                            ? gameData.lineups[0].formation.split(
+                                                  "-"
+                                              ).length
+                                            : 3;
+
+                                        let posX, posY;
+
+                                        if (isGoalkeeper) {
+                                            posX = "7%";
+                                            posY = "50%";
+                                        } else {
+                                            // Adjust positioning for outfield players - ensure they stay on left half
+                                            posX = `${
+                                                row * (35 / valueToSplit)
+                                            }%`;
+                                            posY = `${
+                                                formatPositions[
+                                                    teamPositions.home[row]
+                                                ][col - 1]
+                                            }%`;
+                                        }
+
+                                        return (
+                                            <div
+                                                key={`home-${player.id}`}
+                                                className="absolute -translate-x-1/2 -translate-y-1/2"
+                                                style={{
+                                                    left: posX,
+                                                    top: posY,
+                                                }}
+                                            >
+                                                {/* Player icon */}
+                                                <div
+                                                    className={`w-10 h-10 flex items-center text-xs font-bold backdrop-blur-sm bg-slate-800/70 relative rounded-2xl overflow-hidden shadow-lg`}
+                                                >
+                                                    <Image
+                                                        src={
+                                                            getPlayerPhotoById(
+                                                                player.id,
+                                                                "home"
+                                                            ) ||
+                                                            "/placeholder.svg"
+                                                        }
+                                                        alt={player.name}
+                                                        fill
+                                                        className="object-contain absolute "
+                                                    />
+                                                </div>
+
+                                                {/* Player name */}
+                                                <div className="mt-1 text-center">
+                                                    <span className="text-xs font-medium text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">
+                                                        {player.number}{" "}
+                                                        {player.name
+                                                            .split(" ")
+                                                            .pop()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                )}
+
+                                {/* Away team - Right side */}
+                                {gameData.lineups[1].startXI.map(
+                                    ({ player }) => {
+                                        // Skip if no grid position
+                                        if (!player.grid) return null;
+
+                                        const [row, col] = player.grid
+                                            .split(":")
+                                            .map(Number);
+                                        const isGoalkeeper = player.pos === "G";
+                                        const valueToSplit = gameData.lineups
+                                            ? gameData.lineups[1].formation.split(
+                                                  "-"
+                                              ).length
+                                            : 3;
+
+                                        // Find player statistics if available
+                                        // const playerStats =
+                                        //     gameData.players?.[1]?.players.find(
+                                        //         (p) =>
+                                        //             p.player.id ===
+                                        //             player.id
+                                        //     );
+                                        // const rating =
+                                        //     playerStats?.statistics[0]
+                                        //         ?.games?.rating || "6.0";
+
+                                        // Position calculation - right side of the field
+                                        let posX, posY;
+
+                                        if (isGoalkeeper) {
+                                            posX = "7%";
+                                            posY = "50%";
+                                        } else {
+                                            // Adjust positioning for outfield players - ensure they stay on left half
+                                            posX = `${
+                                                row * (35 / valueToSplit)
+                                            }%`;
+                                            posY = `${
+                                                formatPositions[
+                                                    teamPositions.away[row]
+                                                ][col - 1]
+                                            }%`;
+                                        }
+
+                                        return (
+                                            <div
+                                                key={`away-${player.id}`}
+                                                className="absolute transform translate-x-1/2 translate-y-1/2"
+                                                style={{
+                                                    right: posX,
+                                                    bottom: posY,
+                                                }}
+                                            >
+                                                {/* Rating badge */}
+                                                {/* <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-[#8dc63f] text-black text-xs font-bold rounded-full w-8 h-5 flex items-center justify-center">
+                                                        {rating}
+                                                    </div> */}
+
+                                                {/* Player icon */}
+                                                <div
+                                                    className={`w-10 h-10 flex items-center text-xs font-bold backdrop-blur-sm bg-slate-800/70 relative rounded-2xl overflow-hidden p-2 shadow-lg`}
+                                                >
+                                                    <Image
+                                                        src={
+                                                            getPlayerPhotoById(
+                                                                player.id,
+                                                                "away"
+                                                            ) ||
+                                                            "/placeholder.svg"
+                                                        }
+                                                        alt={player.name}
+                                                        fill
+                                                        className="object-contain absolute "
+                                                    />
+                                                </div>
+
+                                                {/* Player name */}
+                                                <div className="mt-1 text-center">
+                                                    <span className="text-xs font-medium text-white bg-black bg-opacity-50 rounded">
+                                                        {player.number}{" "}
+                                                        {player.name
+                                                            .split(" ")
+                                                            .pop()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Team formations display */}
+                        <div className="absolute top-4 left-4 bg-black bg-opacity-70 px-3 py-1 rounded-md">
+                            <div className="flex items-center">
+                                <Image
+                                    src={
+                                        gameData.lineups[0].team.logo ||
+                                        "/placeholder.svg"
+                                    }
+                                    alt={gameData.lineups[0].team.name}
+                                    width={20}
+                                    height={20}
+                                    className="mr-2"
+                                />
+                                <span className="text-sm font-semibold">
+                                    {gameData.lineups[0].formation}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="absolute top-4 right-4 bg-black bg-opacity-70 px-3 py-1 rounded-md">
+                            <div className="flex items-center">
+                                <span className="text-sm font-semibold">
+                                    {gameData.lineups[1].formation}
+                                </span>
+                                <Image
+                                    src={
+                                        gameData.lineups[1].team.logo ||
+                                        "/placeholder.svg"
+                                    }
+                                    alt={gameData.lineups[1].team.name}
+                                    width={20}
+                                    height={20}
+                                    className="ml-2"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {gameData?.statistics !== undefined && (
                 <Card className="mb-8 bg-card">
                     <CardContent className="pt-6">
@@ -252,6 +587,10 @@ export default function MatchPage() {
                         <div className="space-y-4">
                             {statisticsToShow.map((type) => {
                                 // TODO FIND A NICER WAY TO DO THIS
+                                if (gameData?.statistics === undefined) {
+                                    return;
+                                }
+
                                 const homeStat =
                                     gameData.statistics[0].statistics.find(
                                         (stat) => stat.type === type

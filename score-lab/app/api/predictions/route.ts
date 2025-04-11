@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const date = searchParams.get("date")
     const leagueId = searchParams.get("leagueId")
-    console.log(leagueId)
 
     if (!date) {
         return NextResponse.json({ msg: "Date parameter is required", predictions: [] }, { status: 400 }) // maybe 500 ?
