@@ -41,7 +41,7 @@ export default function PredictionsList({
     useEffect(() => {
         if (date) {
             setIsLoading(true);
-            const extraQuery = leagueIds ? `&leagueId=${leagueIds}` : "";
+            const extraQuery = leagueIds ? `&leagueIds=${leagueIds}` : "";
             fetch(
                 `/api/predictions?date=${format(
                     date,
