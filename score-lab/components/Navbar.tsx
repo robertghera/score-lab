@@ -34,6 +34,12 @@ export default function Navbar() {
                             Predictions
                         </Link>
                         <Link
+                            href="/simulations"
+                            className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                        >
+                            Simulations
+                        </Link>
+                        <Link
                             href="/leaderboard"
                             className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
                         >
