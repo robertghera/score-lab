@@ -2,23 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { ChevronDown, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Prediction } from "@/types/predictions";
 interface PredictionsListProps {
@@ -178,6 +170,7 @@ export default function PredictionsList({
                                 {prediction.fixture.venue.city}
                             </p>
                         </CardContent>
+                        {/* For now disabled because there is no functionality yet
                         <CardFooter className="mt-auto">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -207,7 +200,7 @@ export default function PredictionsList({
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                        </CardFooter>
+                        </CardFooter> */}
                     </Card>
                 </Link>
             ))}

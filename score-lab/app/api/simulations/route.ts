@@ -16,7 +16,7 @@ interface gameTypeObject {
 
 interface objectFromDatabase extends WithId<Document> {
     final_prediction: {
-        [key: string]: string
+        [key: string]: "W" | "D" | "L"
     }
     result: "W" | "D" | "L"
     odds: {
@@ -74,9 +74,14 @@ export async function GET(request: NextRequest) {
     dataFromDatabase.forEach((game) => {
         if (game.final_prediction[modelName] === game.result) {
             totalCorrectPredictions[game.result]++
-            totalOddWin[game.result] += game.odds[queryForOdds[game.result]]
+            if (game.odds) {
+                // TODO: maybe count games without odds as well
+                totalOddWin[game.result] += game.odds[queryForOdds[game.result]]
+            } else {
+                totalOddWin[game.result] += 1 // at least 1 for the game
+            }
         }
-        totalGamesPerCategory[game.result]++
+        totalGamesPerCategory[game.final_prediction[modelName]]++
     })
 
     const toReturn = {

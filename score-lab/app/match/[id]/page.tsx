@@ -141,9 +141,15 @@ interface GameData {
               }
           ]
         | undefined;
-    final_prediction: string | null;
-    prediction: number[] | null;
-    prediction_given: string | null;
+    final_prediction: {
+        [key: string]: "W" | "D" | "L";
+    } | null;
+    prediction: {
+        [key: string]: number[];
+    } | null;
+    prediction_given: {
+        [key: string]: "W" | "D" | "L";
+    } | null;
     result: string | null;
 }
 
@@ -628,7 +634,7 @@ export default function MatchPage() {
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div className="h-2 w-full text-foreground rounded-l overflow-hidden flex justify-end">
                                                     <div
-                                                        className="h-full bg-primary"
+                                                        className="h-full bg-gray-900 dark:bg-white"
                                                         style={{
                                                             width: `${homeValue}%`,
                                                         }}
@@ -636,7 +642,7 @@ export default function MatchPage() {
                                                 </div>
                                                 <div className="h-2 w-full text-foregroundrounded-r overflow-hidden flex justify-start">
                                                     <div
-                                                        className="h-full bg-primary"
+                                                        className="h-full bg-gray-900 dark:bg-white"
                                                         style={{
                                                             width: `${awayValue}%`,
                                                         }}
@@ -672,7 +678,7 @@ export default function MatchPage() {
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="h-2 w-full text-foreground rounded-l overflow-hidden flex justify-end">
                                                 <div
-                                                    className="h-full bg-primary"
+                                                    className="h-full bg-gray-900 dark:bg-white"
                                                     style={{
                                                         width: `${homePercentage}%`,
                                                     }}
@@ -680,7 +686,7 @@ export default function MatchPage() {
                                             </div>
                                             <div className="h-2 w-full text-foreground rounded-r overflow-hidden flex justify-start">
                                                 <div
-                                                    className="h-full bg-primary"
+                                                    className="h-full bg-gray-900 dark:bg-white"
                                                     style={{
                                                         width: `${awayPercentage}%`,
                                                     }}
@@ -702,13 +708,13 @@ export default function MatchPage() {
                             <h3 className="text-xl font-bold mb-6 flex items-center">
                                 AI Predictions:
                                 <span className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500 text-white">
-                                    {gameData.final_prediction === "W"
+                                    {gameData.final_prediction.test === "W"
                                         ? "Home Win"
-                                        : gameData.final_prediction === "D"
+                                        : gameData.final_prediction.test === "D"
                                         ? "Draw"
-                                        : gameData.final_prediction === "L"
+                                        : gameData.final_prediction.test === "L"
                                         ? "Away Win"
-                                        : gameData.final_prediction}
+                                        : gameData.final_prediction.test}
                                 </span>
                             </h3>
                             <div className="space-y-4">
@@ -720,8 +726,8 @@ export default function MatchPage() {
                                         <span className="text-sm font-bold mr-2">
                                             {gameData.prediction
                                                 ? `${Math.round(
-                                                      gameData.prediction[2] *
-                                                          100
+                                                      gameData.prediction
+                                                          .test[2] * 100
                                                   )}%`
                                                 : "45%"}
                                         </span>
@@ -732,8 +738,8 @@ export default function MatchPage() {
                                                     width: gameData.prediction
                                                         ? `${Math.round(
                                                               gameData
-                                                                  .prediction[2] *
-                                                                  100
+                                                                  .prediction
+                                                                  .test[2] * 100
                                                           )}%`
                                                         : "45%",
                                                 }}
@@ -749,8 +755,8 @@ export default function MatchPage() {
                                         <span className="text-sm font-bold mr-2">
                                             {gameData.prediction
                                                 ? `${Math.round(
-                                                      gameData.prediction[1] *
-                                                          100
+                                                      gameData.prediction
+                                                          .test[1] * 100
                                                   )}%`
                                                 : "30%"}
                                         </span>
@@ -761,8 +767,8 @@ export default function MatchPage() {
                                                     width: gameData.prediction
                                                         ? `${Math.round(
                                                               gameData
-                                                                  .prediction[1] *
-                                                                  100
+                                                                  .prediction
+                                                                  .test[1] * 100
                                                           )}%`
                                                         : "30%",
                                                 }}
@@ -778,8 +784,8 @@ export default function MatchPage() {
                                         <span className="text-sm font-bold mr-2">
                                             {gameData.prediction
                                                 ? `${Math.round(
-                                                      gameData.prediction[0] *
-                                                          100
+                                                      gameData.prediction
+                                                          .test[0] * 100
                                                   )}%`
                                                 : "25%"}
                                         </span>
@@ -790,8 +796,8 @@ export default function MatchPage() {
                                                     width: gameData.prediction
                                                         ? `${Math.round(
                                                               gameData
-                                                                  .prediction[0] *
-                                                                  100
+                                                                  .prediction
+                                                                  .test[0] * 100
                                                           )}%`
                                                         : "25%",
                                                 }}
@@ -810,7 +816,7 @@ export default function MatchPage() {
                                         <span
                                             className={`px-2 py-1 rounded text-xs font-medium ${
                                                 gameData.result ===
-                                                gameData.prediction_given
+                                                gameData.final_prediction.test
                                                     ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                                                     : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                                             }`}
@@ -824,7 +830,7 @@ export default function MatchPage() {
                                                 : gameData.result}
                                         </span>
                                         {gameData.result ===
-                                        gameData.prediction_given ? (
+                                        gameData.final_prediction.test ? (
                                             <span className="ml-2 text-xs text-green-600 dark:text-green-400">
                                                 Prediction correct
                                             </span>

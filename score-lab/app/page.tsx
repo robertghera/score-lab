@@ -22,7 +22,7 @@ export default function Home() {
                     </p>
                     <Link
                         href="/predictions"
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold py-3 px-6 rounded-full inline-flex items-center text-lg transition-all duration-300 transform hover:scale-105"
+                        className="bg-blue-600 dark:bg-blue-500 text-primary-foreground hover:bg-blue-600/90 dark:hover:bg-blue-500/90 font-bold py-3 px-6 rounded-full inline-flex items-center text-lg transition-all duration-300 transform hover:scale-105"
                     >
                         Start Predicting
                         <ArrowRight className="ml-2" />

@@ -41,6 +41,8 @@ export interface Prediction {
             winner: boolean | null
         }
     }
-    final_prediction: string
+    final_prediction: {
+        [key: string]: string
+    } | null
 }
 
