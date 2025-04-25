@@ -16,6 +16,7 @@ import { Prediction } from "@/types/predictions";
 interface PredictionsListProps {
     date?: Date;
     leagueIds?: number[];
+    onlyAiPredictions?: boolean;
 }
 
 interface PredictionResponse {
@@ -26,6 +27,7 @@ interface PredictionResponse {
 export default function PredictionsList({
     date,
     leagueIds,
+    onlyAiPredictions = false,
 }: PredictionsListProps) {
     const [data, setData] = useState<PredictionResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +40,7 @@ export default function PredictionsList({
                 `/api/predictions?date=${format(
                     date,
                     "yyyy-MM-dd"
-                )}${extraQuery}`
+                )}&onlyAi=${onlyAiPredictions}${extraQuery}`
             )
                 .then((res) => res.json())
                 .then((data) => {
@@ -50,7 +52,7 @@ export default function PredictionsList({
                     setIsLoading(false);
                 });
         }
-    }, [date, leagueIds]);
+    }, [date, leagueIds, onlyAiPredictions]);
 
     if (isLoading || data === null) {
         return (

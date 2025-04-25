@@ -6,12 +6,16 @@ import PredictionsList from "@/components/PredictionsList";
 import { authClient } from "@/lib/auth-client";
 import LeagueFilter from "@/components/LeagueFilter";
 import CalendarBox from "@/components/CalendarBox";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function PredictionsPage() {
     const [date, setDate] = useState<Date>(new Date());
     const { data, isPending } = authClient.useSession();
     const [selectedLeague, setSelectedLeague] = useState<string[]>(["all"]);
+    const [showAiPredictions, setShowAiPredictions] = useState<boolean>(false);
     const [open, setOpen] = useState(false);
+    console.log(showAiPredictions);
 
     if (isPending) {
         return <Loader2 className="animate-spin mx-auto my-10" />;
@@ -42,6 +46,32 @@ export default function PredictionsPage() {
                     selectedLeague={selectedLeague}
                     setSelectedLeague={setSelectedLeague}
                 />
+
+                <div>
+                    <Button
+                        variant="outline"
+                        className={cn(
+                            "w-[240px] justify-start text-left",
+                            "border-gray-500",
+                            "flex items-center h-9"
+                        )}
+                        onClick={() => setShowAiPredictions(!showAiPredictions)}
+                    >
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                id="aiPredictions"
+                                checked={showAiPredictions}
+                                onChange={(e) =>
+                                    setShowAiPredictions(e.target.checked)
+                                }
+                                className="mr-2 h-4 w-4 rounded"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                            <span>AI Predictions Only</span>
+                        </div>
+                    </Button>
+                </div>
             </div>
             <PredictionsList
                 date={date}
@@ -50,6 +80,7 @@ export default function PredictionsPage() {
                         ? undefined
                         : selectedLeague.map((id) => Number.parseInt(id))
                 }
+                onlyAiPredictions={showAiPredictions}
             />
         </div>
     );

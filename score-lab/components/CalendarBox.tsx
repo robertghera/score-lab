@@ -24,7 +24,7 @@ export default function CalendarBox({
                     variant="outline"
                     className={cn(
                         `w-[${maxWidth}px] justify-start text-left font-normal`,
-                        "border-gray-500 hover:bg-primary hover:text-input",
+                        "border-gray-500",
                         !date && "text-muted-foreground"
                     )}
                 >
