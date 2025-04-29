@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ msg: "Date cannot be in the future", predictions: [] }, { status: 200 })
     }
 
-    const dataFromDatabase = await client.db().collection("predictions").find(query).toArray()
+    const dataFromDatabase = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(query).toArray()
     if (dataFromDatabase.length === 0) {
         return NextResponse.json({ msg: "No games available", predictions: [] }, { status: 200 })
     }

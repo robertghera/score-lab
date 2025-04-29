@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "ID parameter is required" }, { status: 400 })
     }
 
-    const dataFromDatabase = await client.db().collection("predictions").findOne({ "fixture.id": Number(id) })
+    const dataFromDatabase = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").findOne({ "fixture.id": Number(id) })
 
     if (!dataFromDatabase) {
         return NextResponse.json({ error: "No game data available" }, { status: 404 })
