@@ -8,6 +8,8 @@
  - maybe add toasts
  - add error handling for auth cases (make some research here)
  - make the statistics nicer in code
+ - add radar chart for league average
+ - maybe scale the radar chart
 
 # Before official release
  - remove all console.logs

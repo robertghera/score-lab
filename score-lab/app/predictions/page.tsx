@@ -15,7 +15,6 @@ export default function PredictionsPage() {
     const [selectedLeague, setSelectedLeague] = useState<string[]>(["all"]);
     const [showAiPredictions, setShowAiPredictions] = useState<boolean>(false);
     const [open, setOpen] = useState(false);
-    console.log(showAiPredictions);
 
     if (isPending) {
         return <Loader2 className="animate-spin mx-auto my-10" />;

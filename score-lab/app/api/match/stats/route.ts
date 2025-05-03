@@ -1,0 +1,163 @@
+import client from "@/lib/mongo"
+import { WithId } from "mongodb"
+import { type NextRequest, NextResponse } from "next/server"
+
+interface QueryForStats {
+    "$or": [
+        { "teams.home.name": string },
+        { "teams.away.name": string }
+    ],
+    "hasStats": true // this will be replaced with fixture.status
+}
+
+interface QueryResult extends WithId<Document> {
+    teams: {
+        home: {
+            name: string
+        },
+        away: {
+            name: string
+        }
+    },
+    statistics: Array<{
+        statistics: Array<{
+            type: string,
+            value: string | number | null
+        }>
+    }>
+}
+
+interface StatsObject {
+    [key: string]: number
+}
+
+const FinalStatsShots = [
+    "Shots on Goal",
+    "Total Shots",
+    "Blocked Shots",
+    "Shots insidebox",
+    "Shots outsidebox",
+]
+
+const FinalStatsPercentages = [
+    "Ball Possession",
+    "Passes %"
+]
+
+const FinalStatsOther = [
+    "Fouls",
+    "Corner Kicks",
+    "Offsides",
+    "Yellow Cards",
+    "Red Cards",
+]
+
+function getAverageStats(data: Array<QueryResult>, team: string) {
+    const finalObjectShots: StatsObject = {}
+    const finalObjectPercentages: StatsObject = {}
+    const finalObjectOther: StatsObject = {}
+
+    for (const game of data) {
+        let indexTeam = 0
+        if (game.teams.away.name === team) {
+            indexTeam = 1
+        }
+
+        for (const stat of game.statistics[indexTeam].statistics) {
+            const { type, value } = stat
+
+            if (FinalStatsShots.includes(type) && typeof value === "number") {
+                finalObjectShots[type] = (finalObjectShots[type] as number ?? 0) + value;
+            } else if (FinalStatsPercentages.includes(type) && typeof value === "string") {
+                const numericValue = Number(value.replace("%", ""));
+                finalObjectPercentages[type] = (finalObjectPercentages[type] as number ?? 0) + numericValue;
+            } else if (FinalStatsOther.includes(type) && (typeof value === "number" || value === null)) {
+                finalObjectOther[type] = (finalObjectOther[type] as number ?? 0) + (value ?? 0);
+            }
+        }
+    }
+
+    const divideBy = data.length;
+
+    Object.keys(finalObjectShots).forEach((key) => {
+        finalObjectShots[key] = +(finalObjectShots[key] as number / divideBy).toFixed(2);
+    });
+
+    Object.keys(finalObjectPercentages).forEach((key) => {
+        finalObjectPercentages[key] = +(finalObjectPercentages[key] as number / divideBy).toFixed(3);
+    });
+
+    // Calculate derived stat
+    if (
+        typeof finalObjectShots["Shots on Goal"] === "number" &&
+        typeof finalObjectShots["Total Shots"] === "number" &&
+        finalObjectShots["Total Shots"] !== 0
+    ) {
+        finalObjectPercentages["Shots %"] = +((finalObjectShots["Shots on Goal"] as number) / (finalObjectShots["Total Shots"] as number) * 100).toFixed(3);
+    } else {
+        finalObjectPercentages["Shots %"] = 0;
+    }
+
+    Object.keys(finalObjectOther).forEach((key) => {
+        finalObjectOther[key] = +(finalObjectOther[key] as number / divideBy).toFixed(2);
+    });
+
+    return [finalObjectShots, finalObjectPercentages, finalObjectOther];
+}
+
+function convertToStats(dataHomeTeam: StatsObject[], dataAwayTeam: StatsObject[], homeTeam: string, awayTeam: string) {
+    const finalStats: Array<Array<{ stat: string;[team: string]: number | string }>> = []
+    dataHomeTeam.forEach((category: object, indexCategory: number) => {
+        Object.keys(category).forEach((key: string, indexStat: number) => {
+            if (finalStats[indexCategory] === undefined) {
+                finalStats[indexCategory] = []
+            }
+
+            finalStats[indexCategory][indexStat] = {
+                stat: key
+            }
+
+            finalStats[indexCategory][indexStat][homeTeam] = dataHomeTeam[indexCategory][key]
+            finalStats[indexCategory][indexStat][awayTeam] = dataAwayTeam[indexCategory][key]
+        })
+    })
+
+    return finalStats
+}
+
+
+export async function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams
+    const homeTeam = searchParams.get("homeTeam")
+    const awayTeam = searchParams.get("awayTeam")
+
+    if (homeTeam === null || awayTeam === null) {
+        return NextResponse.json({ msg: "Home team and away team parameters are required", predictions: [] }, { status: 400 }) // maybe 500 ?
+    }
+    const queryHomeTeam: QueryForStats = {
+        "$or": [
+            { "teams.home.name": homeTeam },
+            { "teams.away.name": homeTeam }
+        ],
+        "hasStats": true
+    }
+    const queryAwayTeam: QueryForStats = {
+        "$or": [
+            { "teams.home.name": awayTeam },
+            { "teams.away.name": awayTeam }
+        ],
+        "hasStats": true
+    }
+
+    const resultHomeTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryHomeTeam).sort({ date: -1 }).limit(4).toArray() as QueryResult[]
+    const resultAwayTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryAwayTeam).sort({ date: -1 }).limit(4).toArray() as QueryResult[]
+    const dataHomeTeam = getAverageStats(resultHomeTeam, homeTeam)
+    const dataAwayTeam = getAverageStats(resultAwayTeam, awayTeam)
+    const toReturn = convertToStats(dataHomeTeam, dataAwayTeam, homeTeam, awayTeam)
+
+    if (dataHomeTeam.length === 0 || dataAwayTeam.length === 0) {
+        return NextResponse.json({ msg: "No games available", predictions: [] }, { status: 200 })
+    }
+
+    return NextResponse.json(toReturn, { status: 200 })
+}

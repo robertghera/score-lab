@@ -4,8 +4,27 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Calendar, Clock, Loader2, MapPin, User } from "lucide-react";
+import { Legend, PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    ChartConfig,
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
+
+const chartConfig = {
+    homeTeam: {
+        label: "Home Team",
+        color: "hsl(var(--chart-1))",
+    },
+    awayTeam: {
+        label: "Away Team",
+        color: "hsl(var(--chart-2))",
+    },
+} satisfies ChartConfig;
 
 interface GameData {
     fixture: {
@@ -153,6 +172,39 @@ interface GameData {
     result: string | null;
 }
 
+const CustomAngleTick = ({
+    payload,
+    x,
+    y,
+    textAnchor,
+}: {
+    payload: { value: string };
+    x: number;
+    y: number;
+    textAnchor: string;
+}) => {
+    const label = payload.value;
+
+    // Customize angle per label
+    // let angle = 0;
+    // if (label === "Blocked Shots") angle = 20;
+    // else if (label === "Shots insidebox") angle = 30;
+    // else if (label.length > 12) angle = 45;
+
+    return (
+        <text
+            className="text-xs dark:fill-white"
+            x={x}
+            y={y}
+            textAnchor={textAnchor}
+            dominantBaseline="central"
+            transform={`rotate(${x}, ${y})`}
+        >
+            {label}
+        </text>
+    );
+};
+
 // Update the statistics section to use the new layout
 const statisticsToShow = [
     "Ball Possession",
@@ -176,6 +228,12 @@ const statisticsToShow = [
 export default function MatchPage() {
     const { id } = useParams();
     const [gameData, setGameData] = useState<GameData | null>(null);
+    const [showHomeTeam, setShowHomeTeam] = useState(true);
+    const [showAwayTeam, setShowAwayTeam] = useState(true);
+    const [chartData, setChartData] = useState<
+        Array<Array<Array<{ stat: string; [team: string]: number | string }>>>
+    >([]);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const teamPositions: any = {
         home: {},
@@ -195,6 +253,14 @@ export default function MatchPage() {
             .then((res) => res.json())
             .then((data) => {
                 setGameData(data);
+                fetch(
+                    `/api/match/stats?homeTeam=${data.teams.home.name}&awayTeam=${data.teams.away.name}`
+                )
+                    .then((res) => res.json())
+                    .then((data) => {
+                        setChartData(data);
+                        console.log(data);
+                    });
             })
             .catch((err) => {
                 console.log(err);
@@ -370,7 +436,7 @@ export default function MatchPage() {
             </Card>
 
             {gameData.lineups && gameData.lineups.length > 0 && (
-                <Card className="mb-8 text-white overflow-hidden bg-card">
+                <Card className="mb-8 overflow-hidden bg-card">
                     <div className="p-4 rounded-t-lg">
                         <h3 className="text-xl font-bold">Lineups</h3>
                     </div>
@@ -438,7 +504,7 @@ export default function MatchPage() {
                                                 </div>
 
                                                 {/* Player name */}
-                                                <div className="mt-1 text-center">
+                                                <div className="text-center">
                                                     <span className="text-xs font-medium text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">
                                                         {player.number}{" "}
                                                         {player.name
@@ -529,7 +595,7 @@ export default function MatchPage() {
                                                 </div>
 
                                                 {/* Player name */}
-                                                <div className="mt-1 text-center">
+                                                <div className="text-center">
                                                     <span className="text-xs font-medium text-white bg-black bg-opacity-50 rounded">
                                                         {player.number}{" "}
                                                         {player.name
@@ -545,7 +611,7 @@ export default function MatchPage() {
                         </div>
 
                         {/* Team formations display */}
-                        <div className="absolute top-4 left-4 bg-black bg-opacity-70 px-3 py-1 rounded-md">
+                        <div className="absolute top-4 left-4 bg-black bg-opacity-50 px-3 py-1 rounded-md">
                             <div className="flex items-center">
                                 <Image
                                     src={
@@ -563,7 +629,7 @@ export default function MatchPage() {
                             </div>
                         </div>
 
-                        <div className="absolute top-4 right-4 bg-black bg-opacity-70 px-3 py-1 rounded-md">
+                        <div className="absolute top-4 right-4 bg-black bg-opacity-50 px-3 py-1 rounded-md">
                             <div className="flex items-center">
                                 <span className="text-sm font-semibold">
                                     {gameData.lineups[1].formation}
@@ -583,6 +649,91 @@ export default function MatchPage() {
                     </div>
                 </Card>
             )}
+
+            <Card className="mb-8 bg-card">
+                <CardHeader className="items-center pb-4 text-xl font-bold">
+                    <CardTitle>Past Games Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="gap-0 flex flex-col items-center lg:grid lg:grid-cols-3">
+                    {chartData.map((item, index) => (
+                        <ChartContainer
+                            key={index}
+                            config={chartConfig}
+                            className="mx-auto aspect-square max-h-[280px] w-full"
+                        >
+                            <RadarChart
+                                data={item}
+                                margin={{
+                                    top: -10,
+                                    bottom: -10,
+                                }}
+                                outerRadius={75}
+                            >
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={
+                                        <ChartTooltipContent indicator="line" />
+                                    }
+                                />
+                                <PolarAngleAxis
+                                    dataKey="stat"
+                                    tick={(props) => (
+                                        <CustomAngleTick {...props} />
+                                    )}
+                                />
+                                <PolarGrid
+                                    radialLines={true}
+                                    stroke="hsl(var(--chart-3))"
+                                />
+                                <Radar
+                                    hide={!showHomeTeam}
+                                    dataKey={gameData.teams.home.name}
+                                    fill="var(--color-homeTeam)"
+                                    isAnimationActive={false}
+                                    fillOpacity={0.9}
+                                />
+                                <Radar
+                                    hide={!showAwayTeam}
+                                    dataKey={gameData.teams.away.name}
+                                    fill="var(--color-awayTeam)"
+                                    fillOpacity={0.6}
+                                    isAnimationActive={false}
+                                />
+                                <Legend
+                                    onClick={(e) => {
+                                        if (
+                                            e.dataKey ===
+                                            gameData.teams.home.name
+                                        ) {
+                                            setShowHomeTeam(!showHomeTeam);
+                                        } else if (
+                                            e.dataKey ===
+                                            gameData.teams.away.name
+                                        ) {
+                                            setShowAwayTeam(!showAwayTeam);
+                                        }
+                                    }}
+                                    wrapperStyle={{ cursor: "pointer" }}
+                                    formatter={(value, entry) => {
+                                        const color = entry.color;
+                                        return (
+                                            <span
+                                                style={{
+                                                    color,
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                {value}
+                                            </span>
+                                        );
+                                    }}
+                                />
+                            </RadarChart>
+                        </ChartContainer>
+                    ))}
+                </CardContent>
+                <CardFooter></CardFooter>
+            </Card>
 
             {gameData?.statistics !== undefined && (
                 <Card className="mb-8 bg-card">
