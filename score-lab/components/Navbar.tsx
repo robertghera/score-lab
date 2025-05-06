@@ -39,12 +39,12 @@ export default function Navbar() {
                         >
                             Simulations
                         </Link>
-                        <Link
+                        {/* <Link
                             href="/leaderboard"
                             className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
                         >
                             Leaderboard
-                        </Link>
+                        </Link> */}
                         {isPending ? (
                             <Button disabled>
                                 <Loader2 className="animate-spin" />
@@ -65,9 +65,12 @@ export default function Navbar() {
                                 Sign Out
                             </Button>
                         ) : (
-                            <Button asChild>
+                            <Button
+                                asChild
+                                className="bg-contrast hover:bg-contrast/90"
+                            >
                                 <Link
-                                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                    className="bg-contrast text-input hover:bg-contrast/90 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                                     href={"/sign-in"}
                                 >
                                     <User

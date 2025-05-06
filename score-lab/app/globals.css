@@ -43,6 +43,9 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
+    --contrast: 222 47% 11%;
+    --contrast-foreground: 222 47% 11%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222 47% 11%;
@@ -82,6 +85,9 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    --contrast: 210 40% 98%;
+    --contrast-foreground: 210 40% 98%;
 
     --chart-1: 0 72.2% 50.6%;
     --chart-2: 142.4 71.8% 29.2%;
