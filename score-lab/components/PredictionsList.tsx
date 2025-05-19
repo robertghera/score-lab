@@ -13,6 +13,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Prediction } from "@/types/predictions";
+
 interface PredictionsListProps {
     date?: Date;
     leagueIds?: number[];
@@ -172,37 +173,6 @@ export default function PredictionsList({
                                 {prediction.fixture.venue.city}
                             </p>
                         </CardContent>
-                        {/* For now disabled because there is no functionality yet
-                        <CardFooter className="mt-auto">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                    >
-                                        Make Prediction
-                                        <ChevronDown className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem
-                                        onSelect={() => console.log("Home win")}
-                                    >
-                                        {prediction.teams.home.name} Win
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onSelect={() => console.log("Draw")}
-                                    >
-                                        Draw
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onSelect={() => console.log("Away win")}
-                                    >
-                                        {prediction.teams.away.name} Win
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </CardFooter> */}
                     </Card>
                 </Link>
             ))}

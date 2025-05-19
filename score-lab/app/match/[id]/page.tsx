@@ -14,6 +14,16 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectValue,
+    SelectLabel,
+} from "@/components/ui/select";
+import { authClient } from "@/lib/auth-client";
 
 const chartConfig = {
     homeTeam: {
@@ -228,11 +238,43 @@ const statisticsToShow = [
 export default function MatchPage() {
     const { id } = useParams();
     const [gameData, setGameData] = useState<GameData | null>(null);
+    const { data, isPending } = authClient.useSession();
+    const [prediction, setPrediction] = useState<"W" | "L" | "D" | null>(null);
     const [showHomeTeam, setShowHomeTeam] = useState(true);
     const [showAwayTeam, setShowAwayTeam] = useState(true);
     const [chartData, setChartData] = useState<
         Array<Array<Array<{ stat: string; [team: string]: number | string }>>>
     >([]);
+
+    const handlePredictionSubmit = async (
+        userId: string | undefined,
+        prediction: "W" | "L" | "D",
+        fixtureId: number
+    ) => {
+        try {
+            setPrediction(prediction);
+            const response = await fetch("/api/match/prediction", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    fixtureId: fixtureId,
+                    prediction: prediction,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to submit prediction");
+            }
+
+            const responseData = await response.json();
+            console.log("Prediction submitted successfully:", responseData);
+        } catch (err) {
+            console.error("Error submitting prediction:", err);
+        }
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const teamPositions: any = {
@@ -249,23 +291,37 @@ export default function MatchPage() {
     };
 
     useEffect(() => {
+        if (isPending) {
+            return;
+        }
+
+        fetch(`/api/match/prediction?fixtureId=${id}&userId=${data?.user.id}`)
+            .then((res) => res.json())
+            .then((responseData) => {
+                if (responseData.prediction) {
+                    setPrediction(responseData.prediction);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+
         fetch(`/api/match?id=${id}`)
             .then((res) => res.json())
-            .then((data) => {
-                setGameData(data);
+            .then((responseData) => {
+                setGameData(responseData);
                 fetch(
-                    `/api/match/stats?homeTeam=${data.teams.home.name}&awayTeam=${data.teams.away.name}`
+                    `/api/match/stats?homeTeam=${responseData.teams.home.name}&awayTeam=${responseData.teams.away.name}`
                 )
                     .then((res) => res.json())
-                    .then((data) => {
-                        setChartData(data);
-                        console.log(data);
+                    .then((responseData) => {
+                        setChartData(responseData);
                     });
             })
             .catch((err) => {
                 console.log(err);
             });
-    }, [id]);
+    }, [data?.user.id, id, isPending]);
 
     if (!gameData) {
         return <Loader2 className="animate-spin mx-auto my-10" />;
@@ -380,6 +436,35 @@ export default function MatchPage() {
                                     {gameData.teams.away.name}
                                 </h2>
                             </div>
+                        </div>
+
+                        <div className="flex-1 items-center text-center justify-between mb-8 mx-auto md:w-1/4 1/3 rounded-lg border border-gray-500">
+                            <Select
+                                value={prediction || ""}
+                                onValueChange={(value) =>
+                                    handlePredictionSubmit(
+                                        data?.user.id,
+                                        value as "W" | "L" | "D",
+                                        gameData.fixture.id
+                                    )
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Make Prediction" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Predictions</SelectLabel>
+                                        <SelectItem value="W">
+                                            {gameData.teams.home.name} Win
+                                        </SelectItem>
+                                        <SelectItem value="D">Draw</SelectItem>
+                                        <SelectItem value="L">
+                                            {gameData.teams.away.name} Win
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
