@@ -11,6 +11,14 @@ interface QueryForStats {
 }
 
 interface QueryResult extends WithId<Document> {
+    date: string
+    fixture: {
+        id: number,
+        timestamp: number,
+    },
+    league: {
+        id: number
+    }
     teams: {
         home: {
             name: string
@@ -52,33 +60,20 @@ const FinalStatsOther = [
     "Red Cards",
 ]
 
-function getAverageStats(data: Array<QueryResult>, team: string) {
-    const finalObjectShots: StatsObject = {}
-    const finalObjectPercentages: StatsObject = {}
-    const finalObjectOther: StatsObject = {}
+function formatObjectsFromQuery(stat: { type: string, value: string | number | null }, finalObjectShots: StatsObject, finalObjectPercentages: StatsObject, finalObjectOther: StatsObject) {
+    const { type, value } = stat
 
-    for (const game of data) {
-        let indexTeam = 0
-        if (game.teams.away.name === team) {
-            indexTeam = 1
-        }
-
-        for (const stat of game.statistics[indexTeam].statistics) {
-            const { type, value } = stat
-
-            if (FinalStatsShots.includes(type) && typeof value === "number") {
-                finalObjectShots[type] = (finalObjectShots[type] as number ?? 0) + value;
-            } else if (FinalStatsPercentages.includes(type) && typeof value === "string") {
-                const numericValue = Number(value.replace("%", ""));
-                finalObjectPercentages[type] = (finalObjectPercentages[type] as number ?? 0) + numericValue;
-            } else if (FinalStatsOther.includes(type) && (typeof value === "number" || value === null)) {
-                finalObjectOther[type] = (finalObjectOther[type] as number ?? 0) + (value ?? 0);
-            }
-        }
+    if (FinalStatsShots.includes(type) && typeof value === "number") {
+        finalObjectShots[type] = (finalObjectShots[type] as number ?? 0) + value;
+    } else if (FinalStatsPercentages.includes(type) && typeof value === "string") {
+        const numericValue = Number(value.replace("%", ""));
+        finalObjectPercentages[type] = (finalObjectPercentages[type] as number ?? 0) + numericValue;
+    } else if (FinalStatsOther.includes(type) && (typeof value === "number" || value === null)) {
+        finalObjectOther[type] = (finalObjectOther[type] as number ?? 0) + (value ?? 0);
     }
+}
 
-    const divideBy = data.length;
-
+function formattedStat(divideBy: number, finalObjectShots: StatsObject, finalObjectPercentages: StatsObject, finalObjectOther: StatsObject) {
     Object.keys(finalObjectShots).forEach((key) => {
         finalObjectShots[key] = +(finalObjectShots[key] as number / divideBy).toFixed(2);
     });
@@ -105,7 +100,47 @@ function getAverageStats(data: Array<QueryResult>, team: string) {
     return [finalObjectShots, finalObjectPercentages, finalObjectOther];
 }
 
-function convertToStats(dataHomeTeam: StatsObject[], dataAwayTeam: StatsObject[], homeTeam: string, awayTeam: string) {
+function getAverageStats(data: Array<QueryResult>, team: string) {
+    const finalObjectShots: StatsObject = {}
+    const finalObjectPercentages: StatsObject = {}
+    const finalObjectOther: StatsObject = {}
+
+    for (const game of data) {
+        let indexTeam
+        if (game.teams.home.name === team) {
+            indexTeam = 0
+        } else {
+            indexTeam = 1
+        }
+
+        for (const stat of game.statistics[indexTeam].statistics) {
+            formatObjectsFromQuery(stat, finalObjectShots, finalObjectPercentages, finalObjectOther)
+        }
+    }
+
+    const divideBy = data.length;
+
+    return formattedStat(divideBy, finalObjectShots, finalObjectPercentages, finalObjectOther)
+}
+
+function getAverageStatForLeague(data: Array<QueryResult>) {
+    const finalObjectShots: StatsObject = {}
+    const finalObjectPercentages: StatsObject = {}
+    const finalObjectOther: StatsObject = {}
+
+    for (const game of data) {
+        for (const team of Object.values(game.statistics))
+            for (const stat of team.statistics) {
+                formatObjectsFromQuery(stat, finalObjectShots, finalObjectPercentages, finalObjectOther)
+            }
+    }
+
+    const divideBy = data.length * 2;
+
+    return formattedStat(divideBy, finalObjectShots, finalObjectPercentages, finalObjectOther)
+}
+
+function convertToStats(dataHomeTeam: StatsObject[], dataAwayTeam: StatsObject[], dataLastGames: StatsObject[], homeTeam: string, awayTeam: string) {
     const finalStats: Array<Array<{ stat: string;[team: string]: number | string }>> = []
     dataHomeTeam.forEach((category: object, indexCategory: number) => {
         Object.keys(category).forEach((key: string, indexStat: number) => {
@@ -119,6 +154,7 @@ function convertToStats(dataHomeTeam: StatsObject[], dataAwayTeam: StatsObject[]
 
             finalStats[indexCategory][indexStat][homeTeam] = dataHomeTeam[indexCategory][key]
             finalStats[indexCategory][indexStat][awayTeam] = dataAwayTeam[indexCategory][key]
+            finalStats[indexCategory][indexStat]["League Average"] = dataLastGames[indexCategory][key]
         })
     })
 
@@ -151,9 +187,21 @@ export async function GET(request: NextRequest) {
 
     const resultHomeTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryHomeTeam).sort({ date: -1 }).limit(4).toArray() as QueryResult[]
     const resultAwayTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryAwayTeam).sort({ date: -1 }).limit(4).toArray() as QueryResult[]
+
+    const leagueId = resultHomeTeam[0]?.league?.id ?? resultAwayTeam[0]?.league?.id
+    const currentDateTimetamp = resultHomeTeam[0]?.fixture.timestamp ?? resultAwayTeam[0]?.fixture.timestamp
+    const INTERVAL_LIMIT = 60 * 60 * 24 * 30 // 30 days
+
+    const resultLastGames = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find({ "league.id": leagueId, hasStats: true, "fixture.timestamp": { "$lt": currentDateTimetamp, "$gt": currentDateTimetamp - INTERVAL_LIMIT } })
+        .sort({ date: -1 })
+        .toArray() as QueryResult[]
+
+
     const dataHomeTeam = getAverageStats(resultHomeTeam, homeTeam)
     const dataAwayTeam = getAverageStats(resultAwayTeam, awayTeam)
-    const toReturn = convertToStats(dataHomeTeam, dataAwayTeam, homeTeam, awayTeam)
+    const dataLastGames = getAverageStatForLeague(resultLastGames)
+
+    const toReturn = convertToStats(dataHomeTeam, dataAwayTeam, dataLastGames, homeTeam, awayTeam)
 
     if (dataHomeTeam.length === 0 || dataAwayTeam.length === 0) {
         return NextResponse.json({ msg: "No games available", predictions: [] }, { status: 200 })

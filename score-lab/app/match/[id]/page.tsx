@@ -34,6 +34,10 @@ const chartConfig = {
         label: "Away Team",
         color: "hsl(var(--chart-2))",
     },
+    leagueAverage: {
+        label: "League Average",
+        color: "hsl(var(--chart-3))",
+    },
 } satisfies ChartConfig;
 
 interface GameData {
@@ -242,6 +246,7 @@ export default function MatchPage() {
     const [prediction, setPrediction] = useState<"W" | "L" | "D" | null>(null);
     const [showHomeTeam, setShowHomeTeam] = useState(true);
     const [showAwayTeam, setShowAwayTeam] = useState(true);
+    const [showLeagueAverage, setShowLeagueAverage] = useState(true);
     const [chartData, setChartData] = useState<
         Array<Array<Array<{ stat: string; [team: string]: number | string }>>>
     >([]);
@@ -768,7 +773,7 @@ export default function MatchPage() {
                                 />
                                 <PolarGrid
                                     radialLines={true}
-                                    stroke="hsl(var(--chart-3))"
+                                    stroke="hsl(var(--chart-4))"
                                 />
                                 <Radar
                                     hide={!showHomeTeam}
@@ -781,7 +786,20 @@ export default function MatchPage() {
                                     hide={!showAwayTeam}
                                     dataKey={gameData.teams.away.name}
                                     fill="var(--color-awayTeam)"
-                                    fillOpacity={0.6}
+                                    fillOpacity={
+                                        0.7 + (!showHomeTeam ? 0.3 : 0)
+                                    }
+                                    isAnimationActive={false}
+                                />
+                                <Radar
+                                    hide={!showLeagueAverage}
+                                    dataKey={"League Average"}
+                                    fill="var(--color-leagueAverage)"
+                                    fillOpacity={
+                                        0.4 +
+                                        (!showHomeTeam ? 0.3 : 0) +
+                                        (!showAwayTeam ? 0.2 : 0)
+                                    }
                                     isAnimationActive={false}
                                 />
                                 <Legend
@@ -796,6 +814,12 @@ export default function MatchPage() {
                                             gameData.teams.away.name
                                         ) {
                                             setShowAwayTeam(!showAwayTeam);
+                                        } else if (
+                                            e.dataKey === "League Average"
+                                        ) {
+                                            setShowLeagueAverage(
+                                                !showLeagueAverage
+                                            );
                                         }
                                     }}
                                     wrapperStyle={{ cursor: "pointer" }}
