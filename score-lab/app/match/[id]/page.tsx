@@ -242,7 +242,7 @@ const statisticsToShow = [
 export default function MatchPage() {
     const { id } = useParams();
     const [gameData, setGameData] = useState<GameData | null>(null);
-    const { data, isPending } = authClient.useSession();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [prediction, setPrediction] = useState<"W" | "L" | "D" | null>(null);
     const [showHomeTeam, setShowHomeTeam] = useState(true);
     const [showAwayTeam, setShowAwayTeam] = useState(true);
