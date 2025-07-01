@@ -35,7 +35,19 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ msg: "Date cannot be in the future", predictions: [] }, { status: 200 })
     }
 
-    const dataFromDatabase = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(query).toArray()
+    const dataFromDatabase = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions")
+        .find(query)
+        .project({
+            "_id": 1,
+            "date": 1,
+            "fixture": 1,
+            "league": 1,
+            "teams": 1,
+            "final_prediction": 1,
+        })
+        .sort({ "league.id": 1, "fixture.timestamp": 1 })
+        .toArray()
+    console.log(dataFromDatabase.length)
     if (dataFromDatabase.length === 0) {
         return NextResponse.json({ msg: "No games available", predictions: [] }, { status: 200 })
     }

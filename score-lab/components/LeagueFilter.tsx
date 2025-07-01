@@ -63,17 +63,13 @@ export default function LeagueFilter({
         }
 
         setSelectedLeague((prev) => {
-            // If "all" is currently selected, remove it
             const withoutAll = prev.filter((id) => id !== "all");
 
-            // If this league is already selected, remove it
             if (withoutAll.includes(leagueId)) {
                 const result = withoutAll.filter((id) => id !== leagueId);
-                // If nothing is selected, default to "all"
                 return result.length === 0 ? ["all"] : result;
             }
 
-            // Otherwise, add this league
             return [...withoutAll, leagueId];
         });
     };

@@ -13,6 +13,25 @@ export default function Navbar() {
     const { data, isPending } = authClient.useSession();
     const router = useRouter();
 
+    if (isPending) {
+        return (
+            <nav className="border-b bg-background">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        <div className="flex items-center">
+                            <Link
+                                href="/"
+                                className="text-foreground font-bold text-xl"
+                            >
+                                ScoreLab
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        );
+    }
+
     const toggleMenu = () => setIsOpen(!isOpen);
     return (
         <nav className="border-b bg-background">
@@ -27,18 +46,22 @@ export default function Navbar() {
                         </Link>
                     </div>
                     <div className="hidden md:flex items-center space-x-4">
-                        <Link
-                            href="/predictions"
-                            className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                        >
-                            Predictions
-                        </Link>
-                        <Link
-                            href="/simulations"
-                            className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                        >
-                            Simulations
-                        </Link>
+                        {!isPending && data && (
+                            <>
+                                <Link
+                                    href="/predictions"
+                                    className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >
+                                    Predictions
+                                </Link>
+                                <Link
+                                    href="/simulations"
+                                    className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >
+                                    Simulations
+                                </Link>
+                            </>
+                        )}
                         {/* <Link
                             href="/leaderboard"
                             className="text-muted-foreground hover:text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -104,18 +127,44 @@ export default function Navbar() {
                             Predictions
                         </Link>
                         <Link
-                            href="/leaderboard"
+                            href="/simulations"
                             className="text-muted-foreground hover:text-foreground hover:bg-accent block px-3 py-2 rounded-md text-base font-medium transition-colors"
                         >
-                            Leaderboard
+                            Simulations
                         </Link>
-                        <Link
-                            href="/sign-in"
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 block px-3 py-2 rounded-md text-base font-medium transition-colors w-full text-left"
-                        >
-                            <User className="inline-block mr-1" size={16} />
-                            Sign In
-                        </Link>
+                        {isPending ? (
+                            <Link
+                                href="/sign-in"
+                                className="bg-contrast text-input hover:bg-contrast/90 block px-3 py-2 rounded-md text-base font-medium transition-colors w-auto text-left"
+                            >
+                                <User className="inline-block mr-1" size={16} />
+                                Sign In
+                            </Link>
+                        ) : data ? (
+                            <Button
+                                variant="destructive"
+                                onClick={async () => {
+                                    await authClient.signOut({
+                                        fetchOptions: {
+                                            onSuccess: () => {
+                                                router.push("/");
+                                            },
+                                        },
+                                    });
+                                }}
+                                className="text-left w-full"
+                            >
+                                Sign Out
+                            </Button>
+                        ) : (
+                            <Link
+                                href="/sign-in"
+                                className="bg-contrast text-input hover:bg-contrast/90 block px-3 py-2 rounded-md text-base font-medium transition-colors w-auto text-left"
+                            >
+                                <User className="inline-block mr-1" size={16} />
+                                Sign In
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}

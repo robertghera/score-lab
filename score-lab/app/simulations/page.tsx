@@ -61,7 +61,6 @@ export default function SimulationsPage() {
         )
             .then((res) => res.json())
             .then((data) => {
-                console.log("data: ", data);
                 setSummaryData(data.predictions);
                 setShowResults(true);
             })
@@ -74,7 +73,7 @@ export default function SimulationsPage() {
     // from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950
     return (
         <div className="min-h-screen bg-gradient-to-br">
-            <div className="container mx-auto px-4 py-12">
+            <div className="container mx-auto px-4 py-8">
                 <div className="max-w-5xl mx-auto">
                     <div className="flex items-center justify-between mb-8">
                         <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-500 dark:to-blue-700">

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -242,6 +243,7 @@ const statisticsToShow = [
 export default function MatchPage() {
     const { id } = useParams();
     const [gameData, setGameData] = useState<GameData | null>(null);
+    const { data, isPending } = authClient.useSession();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [prediction, setPrediction] = useState<"W" | "L" | "D" | null>(null);
     const [showHomeTeam, setShowHomeTeam] = useState(true);
@@ -251,6 +253,7 @@ export default function MatchPage() {
         Array<Array<Array<{ stat: string; [team: string]: number | string }>>>
     >([]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handlePredictionSubmit = async (
         userId: string | undefined,
         prediction: "W" | "L" | "D",
@@ -275,7 +278,6 @@ export default function MatchPage() {
             }
 
             const responseData = await response.json();
-            console.log("Prediction submitted successfully:", responseData);
         } catch (err) {
             console.error("Error submitting prediction:", err);
         }
@@ -334,7 +336,6 @@ export default function MatchPage() {
 
     if (gameData && gameData?.lineups?.length === 2) {
         for (const elem of gameData.lineups[0].startXI) {
-            console.log(elem.player.grid);
             const value = elem.player.grid.split(":")[0];
             if (teamPositions.home[value] === undefined) {
                 teamPositions.home[value] = 1;
@@ -384,15 +385,15 @@ export default function MatchPage() {
                             </span>
                         </div>
                     )}
-                    <div className="p-6">
-                        <h1 className="text-2xl font-bold text-center mb-8">
+                    <div className="p-6 text-sm md:text-base">
+                        <h1 className="md:text-2xl text-xl font-bold text-center mb-8">
                             {gameData.teams.home.name} vs{" "}
                             {gameData.teams.away.name}
                         </h1>
 
                         <div className="flex justify-between items-center mb-12">
                             <div className="text-center flex-1">
-                                <div className="w-20 h-20 mx-auto mb-4 relative">
+                                <div className="md:w-20 md:h-20 w-12 h-12 mx-auto mb-4 relative">
                                     <Image
                                         src={
                                             gameData.teams.home.logo ||
@@ -403,21 +404,17 @@ export default function MatchPage() {
                                         className="object-contain"
                                     />
                                 </div>
-                                <h2 className="text-xl font-semibold">
+                                <h2 className="md:text-xl text-sm font-semibold">
                                     {gameData.teams.home.name}
                                 </h2>
                             </div>
 
                             {gameData?.goals?.home !== undefined &&
                             gameData?.goals?.away !== undefined ? (
-                                <div className="text-4xl font-bold mx-8 flex items-center">
-                                    <span className="text-5xl">
-                                        {gameData.goals.home}
-                                    </span>
+                                <div className="md:text-5xl text-3xl font-bold mx-8 flex items-center">
+                                    <span>{gameData.goals.home}</span>
                                     <span className="mx-3">-</span>
-                                    <span className="text-5xl">
-                                        {gameData.goals.away}
-                                    </span>
+                                    <span>{gameData.goals.away}</span>
                                 </div>
                             ) : (
                                 <div className="text-4xl font-bold mx-8">
@@ -426,7 +423,7 @@ export default function MatchPage() {
                             )}
 
                             <div className="text-center flex-1">
-                                <div className="w-20 h-20 mx-auto mb-4 relative">
+                                <div className="md:w-20 md:h-20 w-12 h-12 mx-auto mb-4 relative">
                                     <Image
                                         src={
                                             gameData.teams.away.logo ||
@@ -437,13 +434,13 @@ export default function MatchPage() {
                                         className="object-contain"
                                     />
                                 </div>
-                                <h2 className="text-xl font-semibold">
+                                <h2 className="md:text-xl text-sm font-semibold">
                                     {gameData.teams.away.name}
                                 </h2>
                             </div>
                         </div>
 
-                        <div className="flex-1 items-center text-center justify-between mb-8 mx-auto md:w-1/4 1/3 rounded-lg border border-gray-500">
+                        {/* <div className="flex-1 items-center text-center justify-between mb-8 mx-auto md:w-1/4 1/3 rounded-lg border border-gray-500">
                             <Select
                                 value={prediction || ""}
                                 onValueChange={(value) =>
@@ -470,7 +467,7 @@ export default function MatchPage() {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </div> */}
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center">
@@ -524,6 +521,145 @@ export default function MatchPage() {
                     </div>
                 </div>
             </Card>
+
+            {gameData.final_prediction && (
+                <Card className="mb-8 bg-card">
+                    <CardContent className="pt-6">
+                        <h3 className="text-xl font-bold mb-6 flex items-center">
+                            Prediction made by AI:
+                            <span className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full text-center bg-blue-500 text-white">
+                                {gameData.final_prediction.test === "W"
+                                    ? "Home Win"
+                                    : gameData.final_prediction.test === "D"
+                                    ? "Draw"
+                                    : gameData.final_prediction.test === "L"
+                                    ? "Away Win"
+                                    : gameData.final_prediction.test}
+                            </span>
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">
+                                    {gameData.teams.home.name} Win
+                                </span>
+                                <div className="flex items-center">
+                                    <span className="text-sm font-bold mr-2">
+                                        {gameData.prediction
+                                            ? `${Math.round(
+                                                  gameData.prediction.test[2] *
+                                                      100
+                                              )}%`
+                                            : "45%"}
+                                    </span>
+                                    <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-green-500"
+                                            style={{
+                                                width: gameData.prediction
+                                                    ? `${Math.round(
+                                                          gameData.prediction
+                                                              .test[2] * 100
+                                                      )}%`
+                                                    : "45%",
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">
+                                    Draw
+                                </span>
+                                <div className="flex items-center">
+                                    <span className="text-sm font-bold mr-2">
+                                        {gameData.prediction
+                                            ? `${Math.round(
+                                                  gameData.prediction.test[1] *
+                                                      100
+                                              )}%`
+                                            : "30%"}
+                                    </span>
+                                    <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-yellow-500"
+                                            style={{
+                                                width: gameData.prediction
+                                                    ? `${Math.round(
+                                                          gameData.prediction
+                                                              .test[1] * 100
+                                                      )}%`
+                                                    : "30%",
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">
+                                    {gameData.teams.away.name} Win
+                                </span>
+                                <div className="flex items-center">
+                                    <span className="text-sm font-bold mr-2">
+                                        {gameData.prediction
+                                            ? `${Math.round(
+                                                  gameData.prediction.test[0] *
+                                                      100
+                                              )}%`
+                                            : "25%"}
+                                    </span>
+                                    <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-red-500"
+                                            style={{
+                                                width: gameData.prediction
+                                                    ? `${Math.round(
+                                                          gameData.prediction
+                                                              .test[0] * 100
+                                                      )}%`
+                                                    : "25%",
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {gameData.result && (
+                            <div className="mt-4 flex">
+                                <p className="text-m font-semibold mb-2">
+                                    Match Result:{" "}
+                                    <span
+                                        className={`px-2 py-1 rounded text-xs font-medium ${
+                                            gameData.result ===
+                                            gameData.final_prediction.test
+                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                        }`}
+                                    >
+                                        {gameData.result === "W"
+                                            ? "Home Win"
+                                            : gameData.result === "D"
+                                            ? "Draw"
+                                            : gameData.result === "L"
+                                            ? "Away Win"
+                                            : gameData.result}
+                                    </span>
+                                    {gameData.result ===
+                                    gameData.final_prediction.test ? (
+                                        <span className="ml-2 text-xs text-green-600 dark:text-green-400">
+                                            Prediction correct
+                                        </span>
+                                    ) : (
+                                        <span className="ml-2 text-xs text-red-600 dark:text-red-400">
+                                            Prediction incorrect
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {gameData.lineups && gameData.lineups.length > 0 && (
                 <Card className="mb-8 overflow-hidden bg-card">
@@ -960,162 +1096,6 @@ export default function MatchPage() {
                     </CardContent>
                 </Card>
             )}
-
-            <Card className="mb-8 bg-card">
-                <CardContent className="pt-6">
-                    {gameData.final_prediction ? (
-                        <>
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                AI Predictions:
-                                <span className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500 text-white">
-                                    {gameData.final_prediction.test === "W"
-                                        ? "Home Win"
-                                        : gameData.final_prediction.test === "D"
-                                        ? "Draw"
-                                        : gameData.final_prediction.test === "L"
-                                        ? "Away Win"
-                                        : gameData.final_prediction.test}
-                                </span>
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">
-                                        {gameData.teams.home.name} Win
-                                    </span>
-                                    <div className="flex items-center">
-                                        <span className="text-sm font-bold mr-2">
-                                            {gameData.prediction
-                                                ? `${Math.round(
-                                                      gameData.prediction
-                                                          .test[2] * 100
-                                                  )}%`
-                                                : "45%"}
-                                        </span>
-                                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-green-500"
-                                                style={{
-                                                    width: gameData.prediction
-                                                        ? `${Math.round(
-                                                              gameData
-                                                                  .prediction
-                                                                  .test[2] * 100
-                                                          )}%`
-                                                        : "45%",
-                                                }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">
-                                        Draw
-                                    </span>
-                                    <div className="flex items-center">
-                                        <span className="text-sm font-bold mr-2">
-                                            {gameData.prediction
-                                                ? `${Math.round(
-                                                      gameData.prediction
-                                                          .test[1] * 100
-                                                  )}%`
-                                                : "30%"}
-                                        </span>
-                                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-yellow-500"
-                                                style={{
-                                                    width: gameData.prediction
-                                                        ? `${Math.round(
-                                                              gameData
-                                                                  .prediction
-                                                                  .test[1] * 100
-                                                          )}%`
-                                                        : "30%",
-                                                }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">
-                                        {gameData.teams.away.name} Win
-                                    </span>
-                                    <div className="flex items-center">
-                                        <span className="text-sm font-bold mr-2">
-                                            {gameData.prediction
-                                                ? `${Math.round(
-                                                      gameData.prediction
-                                                          .test[0] * 100
-                                                  )}%`
-                                                : "25%"}
-                                        </span>
-                                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-red-500"
-                                                style={{
-                                                    width: gameData.prediction
-                                                        ? `${Math.round(
-                                                              gameData
-                                                                  .prediction
-                                                                  .test[0] * 100
-                                                          )}%`
-                                                        : "25%",
-                                                }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {gameData.result && (
-                                <div className="mt-4">
-                                    <h4 className="text-sm font-semibold mb-2">
-                                        Match Result
-                                    </h4>
-                                    <div className="flex items-center">
-                                        <span
-                                            className={`px-2 py-1 rounded text-xs font-medium ${
-                                                gameData.result ===
-                                                gameData.final_prediction.test
-                                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                            }`}
-                                        >
-                                            {gameData.result === "W"
-                                                ? "Home Win"
-                                                : gameData.result === "D"
-                                                ? "Draw"
-                                                : gameData.result === "L"
-                                                ? "Away Win"
-                                                : gameData.result}
-                                        </span>
-                                        {gameData.result ===
-                                        gameData.final_prediction.test ? (
-                                            <span className="ml-2 text-xs text-green-600 dark:text-green-400">
-                                                Prediction correct
-                                            </span>
-                                        ) : (
-                                            <span className="ml-2 text-xs text-red-600 dark:text-red-400">
-                                                Prediction incorrect
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-center py-8">
-                            <h3 className="text-xl font-bold mb-4">
-                                AI Prediction Pending
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400">
-                                Our AI is analyzing this match and will provide
-                                predictions soon.
-                            </p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
         </div>
     );
 }

@@ -99,7 +99,7 @@ export default function PredictionsList({
                                         {prediction.league.name}
                                     </span>
                                     {prediction.final_prediction && (
-                                        <span className="ml-2 px-1.5 py-0.5 text-xs font-semibold rounded-full bg-blue-500 text-white">
+                                        <span className="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-blue-500 text-white">
                                             AI
                                         </span>
                                     )}

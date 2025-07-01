@@ -47,7 +47,14 @@ export async function GET(request: NextRequest) {
     }
 
     console.log("query: ", query)
-    const dataFromDatabase = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(query).toArray() as objectFromDatabase[]
+    const dataFromDatabase = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions")
+        .find(query)
+        .project({
+            final_prediction: 1,
+            result: 1,
+            odds: 1,
+        })
+        .toArray() as objectFromDatabase[]
     console.log("dataFromDatabase: ", dataFromDatabase.length)
 
     const totalGames = dataFromDatabase.length

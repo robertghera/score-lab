@@ -185,12 +185,34 @@ export async function GET(request: NextRequest) {
         "hasStats": true
     }
 
-    const resultHomeTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryHomeTeam).sort({ date: -1 }).limit(4).toArray() as QueryResult[]
-    const resultAwayTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryAwayTeam).sort({ date: -1 }).limit(4).toArray() as QueryResult[]
+    const resultHomeTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryHomeTeam)
+        .project({
+            "_id": 1,
+            "date": 1,
+            "fixture": 1,
+            "league": 1,
+            "teams": 1,
+            "statistics": 1,
+        })
+        .sort({ date: -1 })
+        .limit(4)
+        .toArray() as QueryResult[]
+    const resultAwayTeam = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find(queryAwayTeam)
+        .project({
+            "_id": 1,
+            "date": 1,
+            "fixture": 1,
+            "league": 1,
+            "teams": 1,
+            "statistics": 1,
+        })
+        .sort({ date: -1 })
+        .limit(4)
+        .toArray() as QueryResult[]
 
     const leagueId = resultHomeTeam[0]?.league?.id ?? resultAwayTeam[0]?.league?.id
     const currentDateTimetamp = resultHomeTeam[0]?.fixture.timestamp ?? resultAwayTeam[0]?.fixture.timestamp
-    const INTERVAL_LIMIT = 60 * 60 * 24 * 30 // 30 days
+    const INTERVAL_LIMIT = 30 * 24 * 60 * 60 // 30 days in seconds
 
     const resultLastGames = await client.db().collection(process.env.MONGODB_PREDICTION_COL ?? "predictions").find({ "league.id": leagueId, hasStats: true, "fixture.timestamp": { "$lt": currentDateTimetamp, "$gt": currentDateTimetamp - INTERVAL_LIMIT } })
         .sort({ date: -1 })
